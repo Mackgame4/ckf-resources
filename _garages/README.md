@@ -17,6 +17,6 @@ https://github.com/ycr4zy/FreeGamemode
 - [x] Mechanic Call (WIP)
 - [x] Vehicle Storage
 - [ ] Vehicle Impound
-- [ ] Remove Warmenu dependencie
+- [ ] Remove Warmenu dependencie (CK dont have a native menu snippet, just waiting xD)
 
 Special thanks for: Jaymo
