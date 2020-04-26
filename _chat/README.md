@@ -8,5 +8,6 @@ https://github.com/ycr4zy/FreeGamemode
 
 ### Installation
 - Download CK.F Framework
+- Download chat-theme-gtao from cfx-server-data (https://github.com/citizenfx/cfx-server-data) or just change "GTAOTheme" to false in "server/main.lua"
 - Extract "_chat" to "[Framework]" folder and just add in your server.cfg
 - Have Fun
