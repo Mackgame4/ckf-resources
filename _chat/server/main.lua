@@ -6,6 +6,14 @@ cAPI = Tunnel.getInterface('cAPI')
 
 local EnableRealnames = true
 
+local GTAOTheme = true
+
+Citizen.CreateThread(function()
+	if GTAOTheme == true then
+		StartResource("chat-theme-gtao")
+	end
+end)
+
 AddEventHandler('chatMessage', function(source, name, message)
 	if string.sub(message, 1, string.len('/')) ~= '/' then
 		CancelEvent()
