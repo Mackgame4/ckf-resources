@@ -16,5 +16,7 @@ https://github.com/ycr4zy/FreeGamemode
 - [x] Weapon Customization
 - [x] Payment (WIP)
 - [ ] Remove NativeUI dependencie (CK dont have a native menu snippet, just waiting xD)
+- [ ] Onesync improvement
+- [ ] Translation system
 
 Special thanks for: Jaymo and Poke
