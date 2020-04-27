@@ -18,5 +18,7 @@ https://github.com/ycr4zy/FreeGamemode
 - [x] Vehicle Storage
 - [ ] Vehicle Impound
 - [ ] Remove Warmenu dependencie (CK dont have a native menu snippet, just waiting xD)
+- [ ] Onesync improvement
+- [ ] Translation system
 
 Special thanks for: Jaymo
