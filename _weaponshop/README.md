@@ -10,3 +10,11 @@ https://github.com/ycr4zy/FreeGamemode
 - Download CK.F Framework
 - Extract "_weaponshop" to "[Framework]" folder and just add in your server.cfg
 - Have Fun
+
+## Features
+- [x] Buy Weapons
+- [x] Weapon Customization
+- [x] Payment (WIP)
+- [ ] Remove NativeUI dependencie (CK dont have a native menu snippet, just waiting xD)
+
+Special thanks for: Jaymo and Poke
