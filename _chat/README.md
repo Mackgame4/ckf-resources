@@ -1,5 +1,5 @@
 # ckf_chat
-A simple chat role system for CFK Framework
+A simple chat role system for CF.K Framework
 
 ## CK.F Framework and Installation
 https://forum.cfx.re/t/release-ck-f-framework/1158581
