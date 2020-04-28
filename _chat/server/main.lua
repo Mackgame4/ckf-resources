@@ -27,7 +27,7 @@ end)
 
 RegisterCommand('twt', function(source, args, rawCommand)
 	if source == 0 then
-		print('chat: não podes executar este comando pela rcon!')
+		print('You cant execute this command from rcon!')
 		return
 	end
 	args = table.concat(args, ' ')
@@ -43,7 +43,7 @@ end, false)
 
 RegisterCommand('twta', function(source, args, rawCommand)
 	if source == 0 then
-		print('chat: não podes executar este comando pela rcon!')
+		print('You cant execute this command from rcon!')
 		return
 	end
 	args = table.concat(args, ' ')
@@ -53,7 +53,7 @@ end, false)
 
 RegisterCommand('olx', function(source, args, rawCommand)
 	if source == 0 then
-		print('chat: não podes executar este comando pela rcon!')
+		print('You cant execute this command from rcon!')
 		return
 	end
 	args = table.concat(args, ' ')
@@ -73,7 +73,7 @@ RegisterCommand('me', function(source, args, rawCommand)
 	local Character = User:getCharacter()
 	local char_id = Character:getId()
 	if source == 0 then
-		print('chat: não podes executar este comando pela rcon!')
+		print('You cant execute this command from rcon!')
 		return
 	end
 	args = table.concat(args, ' ')
@@ -93,7 +93,7 @@ RegisterCommand('do', function(source, args, rawCommand)
 	local Character = User:getCharacter()
 	local char_id = Character:getId()
 	if source == 0 then
-		print('chat: não podes executar este comando pela rcon!')
+		print('You cant execute this command from rcon!')
 		return
 	end
 	args = table.concat(args, ' ')
@@ -116,4 +116,4 @@ function GetRealPlayerName(source)
 	else
 		return GetPlayerName(source)
 	end
-end
+end 
