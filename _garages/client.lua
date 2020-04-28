@@ -1,15 +1,21 @@
+local Proxy = module('_core', 'libs/Proxy')
+local Tunnel = module('_core', 'libs/Tunnel')
+
+cAPI = Proxy.getInterface('cAPI')
+API = Tunnel.getInterface('API')
+
 Citizen.CreateThread(function()
 while not Config do Citizen.Wait(0) end
 
-AddTextEntry("CKF_ENTER", "Pressiona ~INPUT_CONTEXT~ para entrar na garagem.")
+AddTextEntry("CKF_ENTER", cAPI.getUILanguage(GetCurrentResourceName()).PressEnter)
 
-xnGarage_default = {
+ckfGarage_default = {
     vehicleTaken = false,
     vehicleTakenPos = false,
     curGarage = false,
     curGarageName = false,
     vehicles = {},
-} xnGarage = xnGarage or xnGarage_default
+} ckfGarage = ckfGarage or ckfGarage_default
 
 local vehicleTable
 
@@ -247,7 +253,7 @@ Citizen.CreateThread(function()
         SetBlipAsShortRange(blip, true)
         SetBlipCategory(blip, 9)
         BeginTextCommandSetBlipName("STRING")
-    	AddTextComponentString(Config.GroupMapBlips and "Garagem Publica" or ln)
+    	AddTextComponentString(Config.GroupMapBlips and cAPI.getUILanguage(GetCurrentResourceName()).BlipName or ln)
     	EndTextCommandSetBlipName(blip)
         -- Save handle to blip table
         blips[#blips+1] = blip
@@ -268,9 +274,6 @@ AddEventHandler("CKF:message", function(content,time)
     DrawNotification(0,1)
 end)
 
---[[RegisterCommand("testnot", function(_,args)
-end, false)]]--
-
 local saveCallbackResponse = false
 RegisterNetEvent("CKF:savecallback")
 AddEventHandler("CKF:savecallback", function(response) saveCallbackResponse = response end)
@@ -278,12 +281,12 @@ AddEventHandler("CKF:savecallback", function(response) saveCallbackResponse = re
 -- Load Garage
 function LoadGarage(wait)
     Citizen.CreateThread(function()
-        local x,y,z = ToCoord(xnGarage.curGarage.inLocation[1], false)
+        local x,y,z = ToCoord(ckfGarage.curGarage.inLocation[1], false)
         local int = GetInteriorAtCoords(x, y, z)
         if int then RefreshInterior(int) end
         if wait then
             BeginTextCommandBusyString("STRING")
-            AddTextComponentSubstringPlayerName("Carregando garagem")
+            AddTextComponentSubstringPlayerName(cAPI.getUILanguage(GetCurrentResourceName()).LoadingGarage)
             EndTextCommandBusyString(4)
             Citizen.Wait(wait)
             RemoveLoadingPrompt()
@@ -292,74 +295,74 @@ function LoadGarage(wait)
         TriggerServerEvent("CKF:reqVehicles")
         while not vehicleTable do Citizen.Wait(0) end
         local vt = vehicleTable
-        for _,oldVeh in pairs(xnGarage.vehicles) do
+        for _,oldVeh in pairs(ckfGarage.vehicles) do
 			Citizen.Wait(0)
             SetEntityAsMissionEntity(oldVeh)
             DeleteVehicle(oldVeh)
 			DeleteEntity(oldVeh)
         end
-        xnGarage.vehicles = {}
-        if vehicleTable and vehicleTable[xnGarage.curGarageName] then
-            for pos=1,#Config.locations[xnGarage.curGarageName].carLocations do -- Something weird with JSON causes something to be stupid with null keys
-                local vehData = vehicleTable[xnGarage.curGarageName][pos]
+        ckfGarage.vehicles = {}
+        if vehicleTable and vehicleTable[ckfGarage.curGarageName] then
+            for pos=1,#Config.locations[ckfGarage.curGarageName].carLocations do -- Something weird with JSON causes something to be stupid with null keys
+                local vehData = vehicleTable[ckfGarage.curGarageName][pos]
                 if vehData and vehData ~= "none" then
                     Citizen.CreateThread(function()
                         local isInVehicle, veh, vehModel = GetVehicle()
-                        local x,y,z,h = ToCoord(xnGarage.curGarage.carLocations[pos], true)
+                        local x,y,z,h = ToCoord(ckfGarage.curGarage.carLocations[pos], true)
                         local model = tonumber(vehData["model"])
-                        if xnGarage.vehicleTakenLoc == xnGarage.curGarageName and xnGarage.vehicleTaken and pos == xnGarage.vehicleTakenPos and not IsEntityDead(xnGarage.vehicleTaken) then
+                        if ckfGarage.vehicleTakenLoc == ckfGarage.curGarageName and ckfGarage.vehicleTaken and pos == ckfGarage.vehicleTakenPos and not IsEntityDead(ckfGarage.vehicleTaken) then
                         else
                             -- Load
                             RequestModel(model)
                             while not HasModelLoaded(model) do Citizen.Wait(0) end
                             -- Create
-                            xnGarage.vehicles[pos] = CreateVehicleFromData(vehData, x,y,z+1.0,h,true)
+                            ckfGarage.vehicles[pos] = CreateVehicleFromData(vehData, x,y,z+1.0,h,true)
                             -- Godmode
-                            SetEntityInvincible(xnGarage.vehicles[pos], true)
-            				SetEntityProofs(xnGarage.vehicles[pos], true, true, true, true, true, true, 1, true)
-            				SetVehicleTyresCanBurst(xnGarage.vehicles[pos], false)
-            				SetVehicleCanBreak(xnGarage.vehicles[pos], false)
-            				SetVehicleCanBeVisiblyDamaged(xnGarage.vehicles[pos], false)
-            				SetEntityCanBeDamaged(xnGarage.vehicles[pos], false)
-            				SetVehicleExplodesOnHighExplosionDamage(xnGarage.vehicles[pos], false)
+                            SetEntityInvincible(ckfGarage.vehicles[pos], true)
+            				SetEntityProofs(ckfGarage.vehicles[pos], true, true, true, true, true, true, 1, true)
+            				SetVehicleTyresCanBurst(ckfGarage.vehicles[pos], false)
+            				SetVehicleCanBreak(ckfGarage.vehicles[pos], false)
+            				SetVehicleCanBeVisiblyDamaged(ckfGarage.vehicles[pos], false)
+            				SetEntityCanBeDamaged(ckfGarage.vehicles[pos], false)
+            				SetVehicleExplodesOnHighExplosionDamage(ckfGarage.vehicles[pos], false)
                         end
                         Citizen.CreateThread(function()
                             while true do
                                 Citizen.Wait(0)
                                 local isInVehicle, veh = GetVehicle()
-                                if isInVehicle and veh == xnGarage.vehicles[pos] then
+                                if isInVehicle and veh == ckfGarage.vehicles[pos] then
                                     local x,y,z = table.unpack(GetEntityVelocity(veh))
                                     if (x > 0.5 or y > 0.5 or z > 0.5) or (x < -0.5 or y < -0.5 or z < -0.5) then
                                         Citizen.CreateThread(function()
-                                            xnGarage.vehicleTakenPos = pos
-                                            xnGarage.vehicleTakenLoc = xnGarage.curGarageName
+                                            ckfGarage.vehicleTakenPos = pos
+                                            ckfGarage.vehicleTakenLoc = ckfGarage.curGarageName
                                             local ent = GetPlayerPed(-1)
-                                            local x,y,z,h = ToCoord(xnGarage.curGarage.spawnOutLocation, true)
+                                            local x,y,z,h = ToCoord(ckfGarage.curGarage.spawnOutLocation, true)
                                             DoScreenFadeOut(500)
                                             while IsScreenFadingOut() do Citizen.Wait(0) end
                                             FreezeEntityPosition(ent, true)
                                             SetEntityCoords(ent, x, y, z)
                                             -- Delete All Prev Vehicles
-                                            for i,veh in ipairs(xnGarage.vehicles) do
+                                            for i,veh in ipairs(ckfGarage.vehicles) do
                                                 SetEntityAsMissionEntity(veh)
                                                 DeleteVehicle(veh)
                                                 Citizen.Wait(10)
                                             end
-                                            if xnGarage.vehicleTaken then DeleteVehicle(xnGarage.vehicleTaken) end -- Delete the last vehicle taken out if there is one
+                                            if ckfGarage.vehicleTaken then DeleteVehicle(ckfGarage.vehicleTaken) end -- Delete the last vehicle taken out if there is one
                                             -- Create new vehicle
-                                            xnGarage.vehicleTaken = CreateVehicleFromData(vehData, x,y,z+1.0,h)
-                                            FreezeEntityPosition(xnGarage.vehicleTaken, true)
+                                            ckfGarage.vehicleTaken = CreateVehicleFromData(vehData, x,y,z+1.0,h)
+                                            FreezeEntityPosition(ckfGarage.vehicleTaken, true)
                                             Citizen.Wait(1000)
-                                            SetEntityAsMissionEntity(xnGarage.vehicleTaken)
-                                            SetPedIntoVehicle(ent, xnGarage.vehicleTaken, -1) -- Put the ped into the new vehicle
+                                            SetEntityAsMissionEntity(ckfGarage.vehicleTaken)
+                                            SetPedIntoVehicle(ent, ckfGarage.vehicleTaken, -1) -- Put the ped into the new vehicle
                                             Citizen.Wait(1000)
                                             FreezeEntityPosition(ent, false)
-                                            FreezeEntityPosition(xnGarage.vehicleTaken, false)
+                                            FreezeEntityPosition(ckfGarage.vehicleTaken, false)
                                             Citizen.Wait(1000)
                                             DoScreenFadeIn(500)
                                             while IsScreenFadingIn() do Citizen.Wait(0) end
-                                            xnGarage.curGarage = false
-                                            xnGarage.curGarageName = false
+                                            ckfGarage.curGarage = false
+                                            ckfGarage.curGarageName = false
                                         end)
                                         break
                                     end
@@ -387,23 +390,23 @@ Citizen.CreateThread(function()
         name = false,
     }
     local function SetupCam()
-        if xnGarage and xnGarage.curGarage then
+        if ckfGarage and ckfGarage.curGarage then
             camsettings = {
                 zoomlevel = GetFollowPedCamZoomLevel(),
                 heading = GetGameplayCamRelativeHeading(),
             }
             managecam = CreateCam("DEFAULT_SCRIPTED_CAMERA",true)
-            local x,y,z = ToCoord(xnGarage.curGarage.modifyCam[1])
-            local rx,ry,rz = ToCoord(xnGarage.curGarage.modifyCam[2])
+            local x,y,z = ToCoord(ckfGarage.curGarage.modifyCam[1])
+            local rx,ry,rz = ToCoord(ckfGarage.curGarage.modifyCam[2])
             SetCamCoord(managecam,x,y,z)
             SetCamRot(managecam, rx,ry,rz, 1)
             SetCamActive(managecam, true)
         end
     end
 	WarMenu.CreateMenu('vmm', 'Vehicle Management')
-        WarMenu.CreateSubMenu('vmm:veh', 'vmm', 'Gestão veiculos')
-            WarMenu.CreateSubMenu('vmm:move', 'vmm:veh', 'Aqui?')
-            WarMenu.CreateSubMenu('vmm:delete', 'vmm:veh', 'Tens a certeza?')
+        WarMenu.CreateSubMenu('vmm:veh', 'vmm', cAPI.getUILanguage(GetCurrentResourceName()).ManageGarage)
+            WarMenu.CreateSubMenu('vmm:move', 'vmm:veh', cAPI.getUILanguage(GetCurrentResourceName()).Here)
+            WarMenu.CreateSubMenu('vmm:delete', 'vmm:veh', cAPI.getUILanguage(GetCurrentResourceName()).Sure)
 	WarMenu.SetSubTitle('vmm', "main menu")
     local menus = {"vmm","vmm:veh","vmm:move","vmm:delete"}
 	while true do
@@ -423,61 +426,61 @@ Citizen.CreateThread(function()
                     Citizen.Wait(1000)
                 end
             end
-        elseif WarMenu.IsMenuOpened('vmm') and xnGarage and xnGarage.curGarage then
+        elseif WarMenu.IsMenuOpened('vmm') and ckfGarage and ckfGarage.curGarage then
             if managecam == 999 then SetupCam() elseif not IsCamRendering(managecam) and not IsCamInterpolating(managecam) then RenderScriptCams(1, 1, 1000, 0) end
             local hasAny = false
-            for i=1,#xnGarage.curGarage.carLocations do
-                if xnGarage.vehicles[i] then
+            for i=1,#ckfGarage.curGarage.carLocations do
+                if ckfGarage.vehicles[i] then
                     hasAny = true
-                    local n = GetDisplayNameFromVehicleModel(GetEntityModel(xnGarage.vehicles[i])) ~= "CARNOTFOUND" and GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(xnGarage.vehicles[i]))) or "Veiculo customizado" -- woah
-                    if WarMenu.MenuButton("Veiculo "..i,"vmm:veh",n) then
+                    local n = GetDisplayNameFromVehicleModel(GetEntityModel(ckfGarage.vehicles[i])) ~= "CARNOTFOUND" and GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(ckfGarage.vehicles[i]))) or "Veiculo customizado" -- woah
+                    if WarMenu.MenuButton(cAPI.getUILanguage(GetCurrentResourceName()).Vehicle..i,"vmm:veh",n) then
                         context = {
                             operation = "manage",
-                            entity = xnGarage.vehicles[i],
+                            entity = ckfGarage.vehicles[i],
                             position = i,
                             name = n,
                         }
                     end
                 end
             end
-            if not hasAny then WarMenu.Button("Não tens nenhum veiculo nesta garagem!") end
+            if not hasAny then WarMenu.Button(cAPI.getUILanguage(GetCurrentResourceName()).NoVeh) end
         WarMenu.Display()
         elseif WarMenu.IsMenuOpened('vmm:veh') then
-            local x,y,z = ToCoord(xnGarage.curGarage.carLocations[context.position] or {0,0,0,0}, false)
+            local x,y,z = ToCoord(ckfGarage.curGarage.carLocations[context.position] or {0,0,0,0}, false)
             DrawMarker(20, x,y,z+2.0, 0.0, 0.0, 0.0, 180.0, 0.0, 180.0, 1.5, 1.5, 1.0, 240, 200, 80, 180, false, true, 2, false, false, false, false)
-            if WarMenu.MenuButton("Mover "..context.name.." ~r~Atenção:~s~ WIP","vmm:move") then context.operation = "move" end
-            if WarMenu.MenuButton("~r~Apagar "..context.name.."?","vmm:delete") then context.operation = "delete" end
+            if WarMenu.MenuButton(cAPI.getUILanguage(GetCurrentResourceName()).Move..context.name..cAPI.getUILanguage(GetCurrentResourceName()).Attention,"vmm:move") then context.operation = "move" end
+            if WarMenu.MenuButton(cAPI.getUILanguage(GetCurrentResourceName()).Delete..context.name..cAPI.getUILanguage(GetCurrentResourceName()).What,"vmm:delete") then context.operation = "delete" end
         WarMenu.Display()
         elseif WarMenu.IsMenuOpened('vmm:move') then
-            for i=1,#xnGarage.curGarage.carLocations do
+            for i=1,#ckfGarage.curGarage.carLocations do
                 if i ~= context.position then
-                    local clicked,hovered = WarMenu.Button("Posição "..i)
+                    local clicked,hovered = WarMenu.Button(cAPI.getUILanguage(GetCurrentResourceName()).Position..i)
                     if clicked then
                         Citizen.CreateThread(function()
-                            TriggerServerEvent("CKF:moveVehicle",xnGarage.curGarageName,context.position,i)
+                            TriggerServerEvent("CKF:moveVehicle",ckfGarage.curGarageName,context.position,i)
                             LoadGarage(1000)
                             WarMenu.CloseMenu()
                         end)
                     elseif hovered then
-                        local x,y,z = ToCoord(xnGarage.curGarage.carLocations[i] or {0,0,0,0}, false)
+                        local x,y,z = ToCoord(ckfGarage.curGarage.carLocations[i] or {0,0,0,0}, false)
                         DrawMarker(20, x,y,z+2.0, 0.0, 0.0, 0.0, 180.0, 0.0, 180.0, 1.5, 1.5, 1.0, 0, 128, 255, 100, false, true, 2, false, false, false, false)
-						DrawText3Ds(x,y,z+2.0, "~r~Mover veiculo para aqui?")
+						DrawText3Ds(x,y,z+2.0, cAPI.getUILanguage(GetCurrentResourceName()).ChangePosition)
                     end
                 else
-                    WarMenu.Button("~HUD_COLOUR_GREY~Posição "..i)
+                    WarMenu.Button("~HUD_COLOUR_GREY~"..cAPI.getUILanguage(GetCurrentResourceName()).Position..i)
                 end
             end
-            local x,y,z = ToCoord(xnGarage.curGarage.carLocations[context.position] or {0,0,0,0}, false)
+            local x,y,z = ToCoord(ckfGarage.curGarage.carLocations[context.position] or {0,0,0,0}, false)
             DrawMarker(20, x,y,z+2.0, 0.0, 0.0, 0.0, 180.0, 0.0, 180.0, 1.5, 1.5, 1.0, 240, 200, 80, 180, false, true, 2, false, false, false, false)
-			DrawText3Ds(x,y,z+2.0, "~b~A mover~s~ " .. context.name)
+			DrawText3Ds(x,y,z+2.0, cAPI.getUILanguage(GetCurrentResourceName()).Moving .. context.name)
         WarMenu.Display()
         elseif WarMenu.IsMenuOpened('vmm:delete') then
-            local x,y,z = ToCoord(xnGarage.curGarage.carLocations[context.position] or {0,0,0,0}, false)
+            local x,y,z = ToCoord(ckfGarage.curGarage.carLocations[context.position] or {0,0,0,0}, false)
             DrawMarker(20, x,y,z+2.0, 0.0, 0.0, 0.0, 180.0, 0.0, 180.0, 1.5, 1.5, 1.0, 255, 128, 128, 100, false, true, 2, false, false, false, false)
-            WarMenu.MenuButton("Não",'vmm:veh')
-            if WarMenu.Button("Sim") and context.operation == "delete" then
+            WarMenu.MenuButton(cAPI.getUILanguage(GetCurrentResourceName()).No,'vmm:veh')
+            if WarMenu.Button(cAPI.getUILanguage(GetCurrentResourceName()).Yes) and context.operation == "delete" then
                 Citizen.CreateThread(function()
-                    TriggerServerEvent("CKF:deleteVehicle",xnGarage.curGarageName,context.position)
+                    TriggerServerEvent("CKF:deleteVehicle",ckfGarage.curGarageName,context.position)
                     LoadGarage()
                     WarMenu.CloseMenu()
                 end)
@@ -494,14 +497,14 @@ Citizen.CreateThread(function()
     local context = {
         location = false,
     }
-    WarMenu.CreateMenu('mech', 'Mecãnico')
-        WarMenu.CreateSubMenu('mech:location', 'mech', 'Veiculos')
+    WarMenu.CreateMenu('mech', cAPI.getUILanguage(GetCurrentResourceName()).Mechanic)
+        WarMenu.CreateSubMenu('mech:location', 'mech', cAPI.getUILanguage(GetCurrentResourceName()).Vehicles)
 	WarMenu.SetSubTitle('mech', "main menu")
     local menus = {"mech","mech:location"}
 	while true do
 		if WarMenu.IsMenuOpened('mech') then
             if json.encode(vehicleTable) == json.encode({}) then
-                WarMenu.Button("Não tens nenhum veiculo guardado nesta garagem!")
+                WarMenu.Button(cAPI.getUILanguage(GetCurrentResourceName()).NoGarageVeh)
             else
                 for ln,location in pairs(vehicleTable) do
                     if WarMenu.MenuButton(ln,"mech:location") then context.location = ln end
@@ -512,23 +515,23 @@ Citizen.CreateThread(function()
             for pos,vehData in ipairs(vehicleTable[context.location]) do
                 if vehData ~= "none" then
                     local model = tonumber(vehData["model"])
-                    if GetEntityModel(xnGarage.vehicleTaken) ~= model then -- Don't display the vehicle we currently have out
+                    if GetEntityModel(ckfGarage.vehicleTaken) ~= model then -- Don't display the vehicle we currently have out
                         local name = GetDisplayNameFromVehicleModel(model) ~= "CARNOTFOUND" and GetLabelText(GetDisplayNameFromVehicleModel(model)) or ("Nome de veiculo não encontrado (hash: "..model..")") -- more of this shit
                         if WarMenu.Button(name) then
                             RequestModel(model)
                             while not HasModelLoaded(model) do Citizen.Wait(0) end
-                            xnGarage.vehicleTakenPos = pos
-                            xnGarage.vehicleTakenLoc = context.location
-                            if xnGarage.vehicleTaken then DeleteVehicle(xnGarage.vehicleTaken) end
+                            ckfGarage.vehicleTakenPos = pos
+                            ckfGarage.vehicleTakenLoc = context.location
+                            if ckfGarage.vehicleTaken then DeleteVehicle(ckfGarage.vehicleTaken) end
                             local x,y,z = table.unpack(GetEntityCoords(GetPlayerPed(-1)))
                             local h = GetEntityHeading(GetPlayerPed(-1))
 							WarMenu.CloseMenu()
 							print("Atenção: o veiculo irá spawnar á tua beira, CUIDADO (WIP)")
 							print("O teu ".. name .." será entregue em breve!")
 							Wait(3000)
-                            xnGarage.vehicleTaken = CreateVehicleFromData(vehData, x,y,z,h)
-                            SetEntityAsMissionEntity(xnGarage.vehicleTaken)
-                            SetPedIntoVehicle(GetPlayerPed(-1), xnGarage.vehicleTaken, -1)
+                            ckfGarage.vehicleTaken = CreateVehicleFromData(vehData, x,y,z,h)
+                            SetEntityAsMissionEntity(ckfGarage.vehicleTaken)
+                            SetPedIntoVehicle(GetPlayerPed(-1), ckfGarage.vehicleTaken, -1)
                         end
                     end
                 end
@@ -553,15 +556,15 @@ end)
 Citizen.CreateThread(function()
     while true do
         local isInVehicle, veh, vehModel = GetVehicle()
-        if not xnGarage.curGarage then
+        if not ckfGarage.curGarage then
             for ln,location in pairs(Config.locations) do
                 local ent = isInVehicle and veh or GetPlayerPed(-1)
                 local ix,iy,iz = ToCoord(location.inLocation[1],false)
                 if Vdist2(GetEntityCoords(ent),ix,iy,iz) < 500.0 then
                     --DrawMarker(20, ix,iy,iz+1.0, 0.0, 0.0, 0.0, 180.0, 0.0, 180.0, 1.5, 1.5, 1.0, 0, 128, 255, 100, false, true, 2, false, false, false, false)
-					local text = "Entrar garagem"
+					local text = cAPI.getUILanguage(GetCurrentResourceName()).Join
 					if Vdist2(GetEntityCoords(ent),ix,iy,iz) <= location.inLocation[2]*2.5 then
-						text = "[~g~E~s~] Entrar garagem"
+						text = "[~g~E~s~] " .. cAPI.getUILanguage(GetCurrentResourceName()).Join
 					end
 					DrawText3Ds(ix,iy,iz+1.0, text)
                 end
@@ -579,25 +582,25 @@ Citizen.CreateThread(function()
                         DisplayHelpTextThisFrame("CKF_ENTER", 1)
                         if IsControlJustReleased(0, 51) then
                             if isInVehicle then SetVehicleHalt(veh,1.0,1) end -- Nice Native!
-                            xnGarage.curGarage = location
-                            xnGarage.curGarageName = ln
+                            ckfGarage.curGarage = location
+                            ckfGarage.curGarageName = ln
                             if Config.Debug then print("[DEBUG] Entrando na garagem: "..tostring(ln)) end
                             if not isInVehicle then
                                 LoadGarage()
-                                local x,y,z,h = ToCoord(xnGarage.curGarage.spawnInLocation, true)
+                                local x,y,z,h = ToCoord(ckfGarage.curGarage.spawnInLocation, true)
                                 FancyTeleport(ent, x,y,z,h)
                                 Citizen.Wait(500)
                             else
                                 saveCallbackResponse = false
-                                if xnGarage.vehicleTaken ~= veh then
+                                if ckfGarage.vehicleTaken ~= veh then
                                     TriggerServerEvent("CKF:saveVehicle",VehicleToData(veh),ln)
                                 else
-                                    TriggerServerEvent("CKF:saveVehicle",VehicleToData(veh),ln,xnGarage.vehicleTakenPos,xnGarage.vehicleTakenLoc)
+                                    TriggerServerEvent("CKF:saveVehicle",VehicleToData(veh),ln,ckfGarage.vehicleTakenPos,ckfGarage.vehicleTakenLoc)
                                 end
                                 while not saveCallbackResponse do Citizen.Wait(0) end
                                 if saveCallbackResponse == "no_slot" then
-                                    xnGarage.curGarage = false
-                                    xnGarage.curGarageName = false
+                                    ckfGarage.curGarage = false
+                                    ckfGarage.curGarageName = false
                                     while Vdist2(GetEntityCoords(ent),ix,iy,iz) < location.inLocation[2]*2.5 do
                                         Citizen.Wait(0)
                                         DisplayHelpTextThisFrame("WEB_VEH_FULL", 1)
@@ -606,11 +609,11 @@ Citizen.CreateThread(function()
                                 Citizen.Wait(1000)
                                 if saveCallbackResponse == "success" then
                                     local lastVeh = veh
-                                    xnGarage.vehicleTaken = false
-                                    xnGarage.vehicleTakenPos = false
-                                    xnGarage.vehicleTakenLoc = false
+                                    ckfGarage.vehicleTaken = false
+                                    ckfGarage.vehicleTakenPos = false
+                                    ckfGarage.vehicleTakenLoc = false
                                     LoadGarage()
-                                    local x,y,z,h = ToCoord(xnGarage.curGarage.spawnInLocation, true)
+                                    local x,y,z,h = ToCoord(ckfGarage.curGarage.spawnInLocation, true)
                                     FancyTeleport(GetPlayerPed(-1), x,y,z,h)
                                     Citizen.Wait(1000)
 				                    SetEntityAsMissionEntity(lastVeh)
@@ -623,37 +626,37 @@ Citizen.CreateThread(function()
                 end
             end
         else
-            local gr = xnGarage.curGarage
+            local gr = ckfGarage.curGarage
             local ent = isInVehicle and veh or GetPlayerPed(-1)
             -- Exit Marker
             local ox,oy,oz = ToCoord(gr.outMarker)
             --DrawMarker(1, ox,oy,oz, 0.0, 0.0, 0.0, 180.0, 180.0, 180.0, 1.0, 1.0, 1.0, 0, 128, 255, 100, false, true, 2, false, false, false, false)
-			local text = "Sair garagem"
+			local text = cAPI.getUILanguage(GetCurrentResourceName()).Exit
 			if Vdist2(GetEntityCoords(ent),ToCoord(gr.outMarker)) <= 1.5 then
-				text = "[~g~E~s~] Sair garagem"
+				text = "[~g~E~s~] " .. cAPI.getUILanguage(GetCurrentResourceName()).Exit
 			end
 			DrawText3Ds(ox,oy,oz+1, text)
             if Vdist2(GetEntityCoords(ent),ToCoord(gr.outMarker)) <= 1.5 then
-                local x,y,z,h = ToCoord(xnGarage.curGarage.spawnOutLocation,true)
+                local x,y,z,h = ToCoord(ckfGarage.curGarage.spawnOutLocation,true)
                 local ix,iy,iz = ToCoord(gr.inLocation[1],false)
                 local rad = gr.inLocation[2]
                 FancyTeleport(ent, x,y,z,h, 500,2000,500, true)
                 Citizen.Wait(3000)
-                xnGarage.curGarage = false
-                xnGarage.curGarageName = false
-                xnGarage = xnGarage or xnGarage_default
+                ckfGarage.curGarage = false
+                ckfGarage.curGarageName = false
+                ckfGarage = ckfGarage or ckfGarage_default
                 Citizen.Wait(500)
                 while Vdist2(GetEntityCoords(ent),ix,iy,iz) < rad*2.5 do Citizen.Wait(0) end
             end
             local mx,my,mz = ToCoord(gr.modifyMarker)
             --DrawMarker(1, mx,my,mz, 0.0, 0.0, 0.0, 180.0, 180.0, 180.0, 1.0, 1.0, 1.0, 240, 200, 80, 180, false, true, 2, false, false, false, false)
-			local text = "Gerir Garagem"
+			local text = cAPI.getUILanguage(GetCurrentResourceName()).Manage
 			if Vdist2(GetEntityCoords(ent),ToCoord(gr.modifyMarker)) <= 1.5 then
-				text = "[~g~E~s~] Gerir Garagem"
+				text = "[~g~E~s~] " .. cAPI.getUILanguage(GetCurrentResourceName()).Manage
 			end
 			DrawText3Ds(mx,my,mz+1, text)
             if Vdist2(GetEntityCoords(ent),ToCoord(gr.modifyMarker)) <= 1.5 then
-                DisplayHelpTextThisFrame("MP_MAN_VEH", 0) -- native localisation is cool
+                DisplayHelpTextThisFrame("MP_MAN_VEH", 0)
                 if IsControlJustPressed(1, 51) then
                     WarMenu.OpenMenu("vmm")
                     Citizen.Wait(500)
@@ -668,7 +671,7 @@ end)
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
-        if xnGarage.curGarage and Config.RestrictActions then
+        if ckfGarage.curGarage and Config.RestrictActions then
             DisableControlAction(0, 22, true)
             DisablePlayerFiring(PlayerId(), true)
         end
@@ -678,10 +681,10 @@ end)
 Citizen.CreateThread(function()
     while true do
         if Config.RestrictActions then
-            local curGarage = xnGarage.curGarage
-            while xnGarage.curGarage == curGarage do Citizen.Wait(0) end
+            local curGarage = ckfGarage.curGarage
+            while ckfGarage.curGarage == curGarage do Citizen.Wait(0) end
 
-            if xnGarage.curGarage then
+            if ckfGarage.curGarage then
                 SetCanAttackFriendly(GetPlayerPed(-1), false, false)
                 NetworkSetFriendlyFireOption(false)
             else
@@ -698,9 +701,9 @@ Citizen.CreateThread(function()
     local blip = false
     while true do
         Citizen.Wait(0)
-        local prevEntId = xnGarage.vehicleTaken
-        while not xnGarage.vehicleTaken or prevEntId == xnGarage.vehicleTaken do Citizen.Wait(0) end
-        blip = AddBlipForEntity(xnGarage.vehicleTaken)
+        local prevEntId = ckfGarage.vehicleTaken
+        while not ckfGarage.vehicleTaken or prevEntId == ckfGarage.vehicleTaken do Citizen.Wait(0) end
+        blip = AddBlipForEntity(ckfGarage.vehicleTaken)
         SetBlipSprite(blip, 225)
 		SetBlipScale(blip, 0.8)
         SetBlipColour(blip, 63)
@@ -712,7 +715,7 @@ Citizen.CreateThread(function()
             while myBlip == blip do
                 Citizen.Wait(0)
                 local isInVehicle, veh = GetVehicle(_,true)
-                if isInVehicle and veh == xnGarage.vehicleTaken then
+                if isInVehicle and veh == ckfGarage.vehicleTaken then
                     if GetBlipInfoIdDisplay(myBlip) ~= 3 then
                         SetBlipDisplay(myBlip, 3)
                         BeginTextCommandSetBlipName("STRING")
@@ -727,7 +730,7 @@ Citizen.CreateThread(function()
                 		EndTextCommandSetBlipName(myBlip)
                     end
                 end
-                if IsEntityDead(xnGarage.vehicleTaken) then
+                if IsEntityDead(ckfGarage.vehicleTaken) then
                     RemoveBlip(myBlip)
                     break
                 end
@@ -740,7 +743,7 @@ end)
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
-        if xnGarage.curGarage then
+        if ckfGarage.curGarage then
             for i=0,63 do
                 if i ~= GetPlayerServerId(PlayerId()) then
                     SetPlayerInvisibleLocally(GetPlayerFromServerId(i))
