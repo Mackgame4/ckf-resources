@@ -15,9 +15,13 @@ Citizen.CreateThread(function()
 end)
 
 AddEventHandler('chatMessage', function(source, name, message)
+	local _source = source
+	local User = API.getUserFromSource(_source)
+	local Character = User:getCharacter()
+	local char_id = Character:getId()
 	if string.sub(message, 1, string.len('/')) ~= '/' then
 		CancelEvent()
-		TriggerClientEvent('chat:addMessage', -1, { args = { "OOC | " .. name, message }, color = { 128, 128, 128 } })
+		TriggerClientEvent('chat:addMessage', -1, { args = { "OOC | ID:" .. char_id .. " | " .. name, message }, color = { 128, 128, 128 } })
 	end
 end)
 
@@ -64,6 +68,10 @@ RegisterCommand('olx', function(source, args, rawCommand)
 end, false)
 
 RegisterCommand('me', function(source, args, rawCommand)
+	local _source = source
+	local User = API.getUserFromSource(_source)
+	local Character = User:getCharacter()
+	local char_id = Character:getId()
 	if source == 0 then
 		print('chat: não podes executar este comando pela rcon!')
 		return
@@ -74,12 +82,16 @@ RegisterCommand('me', function(source, args, rawCommand)
 		TriggerClientEvent('chat:sendProximityMessage', -1, source, "Me | " .. name, args, { 255, 0, 0 })
 	else
 		local name = GetPlayerName(source)
-		TriggerClientEvent('chat:sendProximityMessage', -1, source, "Me | " .. name, args, { 255, 0, 0 })
+		TriggerClientEvent('chat:sendProximityMessage', -1, source, "Me | ID:" .. char_id .. " " .. name, args, { 255, 0, 0 })
 	end
 	--print(('%s: %s'):format(name, args))
 end, false)
 
 RegisterCommand('do', function(source, args, rawCommand)
+	local _source = source
+	local User = API.getUserFromSource(_source)
+	local Character = User:getCharacter()
+	local char_id = Character:getId()
 	if source == 0 then
 		print('chat: não podes executar este comando pela rcon!')
 		return
@@ -90,7 +102,7 @@ RegisterCommand('do', function(source, args, rawCommand)
 		TriggerClientEvent('chat:sendProximityMessage', -1, source, "Do | " .. name, args, { 0, 0, 255 })
 	else
 		local name = GetPlayerName(source)
-		TriggerClientEvent('chat:sendProximityMessage', -1, source, "Do | " .. name, args, { 0, 0, 255 })
+		TriggerClientEvent('chat:sendProximityMessage', -1, source, "Do | ID:" .. char_id .. " " .. name, args, { 0, 0, 255 })
 	end
 	--print(('%s: %s'):format(name, args))
 end, false)
@@ -104,4 +116,4 @@ function GetRealPlayerName(source)
 	else
 		return GetPlayerName(source)
 	end
-end 
+end
