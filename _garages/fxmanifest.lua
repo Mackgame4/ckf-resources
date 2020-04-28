@@ -9,12 +9,14 @@ version 'v1.0.0'
 
 
 client_scripts {
+	"@_core/libs/utils.lua",
     "warmenu.lua",
     "config.lua",
     "client.lua",
 }
 
 server_scripts {
+	"@_core/libs/utils.lua",
     "config.lua",
     "server.lua",
 }
