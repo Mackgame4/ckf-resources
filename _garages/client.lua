@@ -172,7 +172,6 @@ local function CreateVehicleFromData(data, x,y,z,h, dontnetwork)
 	local extras = data[ "extras" ]
 	local mods = data[ "mods" ]
 	local veh = CreateVehicle(tonumber(model), x,y,z,h,not dontnetwork)
-	-- Set the mod kit to 0, this is so we can do shit to the car
 	SetVehicleModKit( veh, 0 )
 	SetVehicleTyresCanBurst( veh, burstableTyres )
 	SetVehicleNumberPlateTextIndex( veh,  plateType )
@@ -244,9 +243,8 @@ end
 Citizen.CreateThread(function()
     local blips = {}
     for ln,loc in pairs(Config.locations) do
-        local x,y,z = ToCoord(loc.inLocation[1],false) -- Get coords
-        local blip = AddBlipForCoord(x,y,z) -- Create blip
-        -- Set blip option
+        local x,y,z = ToCoord(loc.inLocation[1],false)
+        local blip = AddBlipForCoord(x,y,z)
         SetBlipSprite(blip, 289)
 		SetBlipScale(blip, 0.8)
         SetBlipColour(blip, 63)
@@ -255,7 +253,6 @@ Citizen.CreateThread(function()
         BeginTextCommandSetBlipName("STRING")
     	AddTextComponentString(Config.GroupMapBlips and cAPI.getUILanguage(GetCurrentResourceName()).BlipName or ln)
     	EndTextCommandSetBlipName(blip)
-        -- Save handle to blip table
         blips[#blips+1] = blip
     end
 end)
@@ -303,7 +300,7 @@ function LoadGarage(wait)
         end
         ckfGarage.vehicles = {}
         if vehicleTable and vehicleTable[ckfGarage.curGarageName] then
-            for pos=1,#Config.locations[ckfGarage.curGarageName].carLocations do -- Something weird with JSON causes something to be stupid with null keys
+            for pos=1,#Config.locations[ckfGarage.curGarageName].carLocations do
                 local vehData = vehicleTable[ckfGarage.curGarageName][pos]
                 if vehData and vehData ~= "none" then
                     Citizen.CreateThread(function()
@@ -312,12 +309,9 @@ function LoadGarage(wait)
                         local model = tonumber(vehData["model"])
                         if ckfGarage.vehicleTakenLoc == ckfGarage.curGarageName and ckfGarage.vehicleTaken and pos == ckfGarage.vehicleTakenPos and not IsEntityDead(ckfGarage.vehicleTaken) then
                         else
-                            -- Load
                             RequestModel(model)
                             while not HasModelLoaded(model) do Citizen.Wait(0) end
-                            -- Create
                             ckfGarage.vehicles[pos] = CreateVehicleFromData(vehData, x,y,z+1.0,h,true)
-                            -- Godmode
                             SetEntityInvincible(ckfGarage.vehicles[pos], true)
             				SetEntityProofs(ckfGarage.vehicles[pos], true, true, true, true, true, true, 1, true)
             				SetVehicleTyresCanBurst(ckfGarage.vehicles[pos], false)
@@ -342,19 +336,17 @@ function LoadGarage(wait)
                                             while IsScreenFadingOut() do Citizen.Wait(0) end
                                             FreezeEntityPosition(ent, true)
                                             SetEntityCoords(ent, x, y, z)
-                                            -- Delete All Prev Vehicles
                                             for i,veh in ipairs(ckfGarage.vehicles) do
                                                 SetEntityAsMissionEntity(veh)
                                                 DeleteVehicle(veh)
                                                 Citizen.Wait(10)
                                             end
-                                            if ckfGarage.vehicleTaken then DeleteVehicle(ckfGarage.vehicleTaken) end -- Delete the last vehicle taken out if there is one
-                                            -- Create new vehicle
+                                            if ckfGarage.vehicleTaken then DeleteVehicle(ckfGarage.vehicleTaken) end
                                             ckfGarage.vehicleTaken = CreateVehicleFromData(vehData, x,y,z+1.0,h)
                                             FreezeEntityPosition(ckfGarage.vehicleTaken, true)
                                             Citizen.Wait(1000)
                                             SetEntityAsMissionEntity(ckfGarage.vehicleTaken)
-                                            SetPedIntoVehicle(ent, ckfGarage.vehicleTaken, -1) -- Put the ped into the new vehicle
+                                            SetPedIntoVehicle(ent, ckfGarage.vehicleTaken, -1)
                                             Citizen.Wait(1000)
                                             FreezeEntityPosition(ent, false)
                                             FreezeEntityPosition(ckfGarage.vehicleTaken, false)
@@ -515,7 +507,7 @@ Citizen.CreateThread(function()
             for pos,vehData in ipairs(vehicleTable[context.location]) do
                 if vehData ~= "none" then
                     local model = tonumber(vehData["model"])
-                    if GetEntityModel(ckfGarage.vehicleTaken) ~= model then -- Don't display the vehicle we currently have out
+                    if GetEntityModel(ckfGarage.vehicleTaken) ~= model then
                         local name = GetDisplayNameFromVehicleModel(model) ~= "CARNOTFOUND" and GetLabelText(GetDisplayNameFromVehicleModel(model)) or ("Nome de veiculo não encontrado (hash: "..model..")") -- more of this shit
                         if WarMenu.Button(name) then
                             RequestModel(model)
@@ -710,7 +702,7 @@ Citizen.CreateThread(function()
         BeginTextCommandSetBlipName("STRING")
 		AddTextComponentSubstringTextLabel("PVEHICLE")
 		EndTextCommandSetBlipName(blip)
-        Citizen.CreateThread(function() -- I could probably make this better but eh
+        Citizen.CreateThread(function()
             local myBlip = blip
             while myBlip == blip do
                 Citizen.Wait(0)
@@ -797,4 +789,4 @@ Citizen.CreateThread(function()
         RefreshInterior(255489)
 		end
 	end)
-end) -- no, this is not mismatched
+end)
